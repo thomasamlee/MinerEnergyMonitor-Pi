@@ -21,3 +21,37 @@ Python 3 - This is probably already installed.  If not, use sudo apt-get install
 SQLite 3 - Install this using sudo apt-get install sqlite3 
 
 [The ADC-based circuit described at Hackster.io](https://www.hackster.io/michael-nigbor/homeenergy-pi-cecfdf)
+
+##Configuration
+Configuration is stored in the HomeEnergy.json file. There are two sections, one for the sampler and another for
+transmitter.
+
+The A, B, C and gain values are calibration values that convert the voltages read by the ADC into amps.  They
+should be close, but if you use a different current sensor or your readings are off, you may need to adjust them.
+The values are the coefficients for a polynomial regression.
+
+Transmitter values have login information as well as URLs for the web destination. 
+
+{
+  "Database": "/home/pi/HomeEnergy/HomeEnergy.db",
+  "Sampler": 
+  {
+    "A": 0.1051,
+    "B": 0.00324,
+    "C": 0.0000011614,
+    "gain": 1
+  },
+  "Transmitter":
+  {
+      "loginURL": "DESTINATION URL HERE",
+      "currentURL": "DESTINATION URL HERE",
+      "userName": "USERNAME HERE",
+      "password": "PASSWORD HERE"
+  }
+}
+
+##Web Destination
+The idea behind the web destination is that you'll want to see the values produced by the system as graphs, gauges
+charts.
+
+I'm working on a Node-based web application that will do this. It should be published in another repo soon.
