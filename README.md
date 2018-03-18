@@ -12,7 +12,7 @@ The software consists of three parts
 
 3. A simple sqlite3 database
 
-![Here is a photo of what the prototype looks like](./HomeEnergy Prototype.jpg)
+![Here is a photo of what the prototype looks like](./HomeEnergyPrototype.jpg)
 
 ##Prerequisites
 
