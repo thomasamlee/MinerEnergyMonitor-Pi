@@ -32,6 +32,7 @@ The values are the coefficients for a polynomial regression.
 
 Transmitter values have login information as well as URLs for the web destination. 
 
+```
 {
   "Database": "/home/pi/HomeEnergy/HomeEnergy.db",
   "Sampler": 
@@ -49,7 +50,7 @@ Transmitter values have login information as well as URLs for the web destinatio
       "password": "PASSWORD HERE"
   }
 }
-
+```
 ##Web Destination
 The idea behind the web destination is that you'll want to see the values produced by the system as graphs, gauges
 charts.
