@@ -1,6 +1,6 @@
 Monitoring Home Energy with your Raspberry Pi
 
-The software in this archive is pictured here:
+The hardware in this archive is pictured here:
 
 https://photos.app.goo.gl/bTXtFVekzwhzKs923
 
