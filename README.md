@@ -12,6 +12,8 @@ The software consists of three parts
 
 3. A simple sqlite3 database
 
+![Here is a photo of what the prototype looks like](./HomeEnergy Prototype.jpg)
+
 ##Prerequisites
 
 A Raspberry Pi.  I did my development on a Raspberry Pi Model 2 B. I suspect this will work fine on newer models.
