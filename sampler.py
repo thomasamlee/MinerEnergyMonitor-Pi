@@ -27,7 +27,7 @@ print("===== sampler.py starting at ", dt.isoformat())
 
 #Read configuration
 try:
-    with open('/home/pi/HomeEnergy/HomeEnergy.json') as json_data:
+    with open('/home/pi/homeenergy-pi/HomeEnergy.json') as json_data:
         config = json.load(json_data)
         print("Configuration read")
 except IOError as e:
