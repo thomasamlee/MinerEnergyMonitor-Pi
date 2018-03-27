@@ -1,5 +1,5 @@
 {
-  "Database": "/home/pi/HomeEnergy/HomeEnergy.db",
+  "Database": "/home/pi/homeenergy-pi/HomeEnergy.db",
   "Sampler": 
   {
     "A": 0.1051,
