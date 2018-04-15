@@ -1,0 +1,32 @@
+===== sampler.py starting at  2018-04-14T21:30:01.983654
+Configuration read
+Connected to database.
+Sampling A0
+Sampling started.
+Sampling stopped
+ssq  3401533133.0
+avg 6.400680272108843
+bias -6.400680272108843
+variance 2313927.1489791293
+stddev 1521.1598038927827
+RMS: 1521.159803892782
+A 0.0
+B 0.002229
+C 0.0
+Average Reading in Amps: 3.39
+Sampling A1
+Sampling started.
+Sampling stopped
+ssq  1970260029.0
+avg -0.4355704697986577
+bias 0.4355704697986577
+variance 1322321.9773924598
+stddev 1149.922596261357
+RMS: 1149.9225962613564
+A 0.0
+B 0.002677
+C 0.0
+Average Reading in Amps: 3.08
+Saving to database
+Database closed
+===== sampler.py exiting at  2018-04-14T21:30:04.235052

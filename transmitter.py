@@ -28,7 +28,7 @@ print("===== transmitter.py starting at ", dt.isoformat())
 
 #Read configuration
 try:
-  with open('/home/pi/HomeEnergy/HomeEnergy.json') as json_data:
+  with open('/home/pi/homeenergy-pi/HomeEnergy.json') as json_data:
     config = json.load(json_data)
     print("Configuration read")
 except IOError as e:
@@ -83,7 +83,7 @@ try:
     reading = {
       'readingdate' : row[1],
       'current1' : row[2],
-      'current2' : 0.0
+      'current2' : row[3]
     }
     print( "Posting: " + printableRow)
 
