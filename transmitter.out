@@ -1,7 +1,0 @@
-===== transmitter.py starting at  2018-04-14T21:30:03.900729
-Configuration read
-Getting access token
-Token Recieved
-Posting: 1, 2018-04-14T21:30:04.198812, 3.39, 3.08
-DELETE FROM currentreading WHERE ROWID = '1'
-===== transmitter.py exiting at  2018-04-14T21:30:04.807249
