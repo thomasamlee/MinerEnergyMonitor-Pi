@@ -24,6 +24,7 @@ import time
 import math
 import RPi.GPIO as GPIO
 import Adafruit_ADS1x15
+# import adafruit_ads1x15.ads1015 as ADS
 import Queue
 from threading import Thread
 import sqlite3
@@ -31,17 +32,18 @@ import datetime
 import array
 import json
 
+# 
 dt = datetime.datetime.now()
 print("===== callback_sampler.py starting at ", dt.isoformat())
 
-#Read configuration
+# Read configuration
 try:
     with open('/home/pi/HomeEnergy/HomeEnergy.json') as json_data:
         config = json.load(json_data)
         print("Configuration read")
 except IOError as e:
-  print("Unable to open configuration file:", e)
-  exit()
+    print("Unable to open configuration file:", e)
+    exit()
 
 keep_going = True
 
@@ -58,6 +60,8 @@ q = Queue.Queue(maxsize=860)
 GAIN = 1
 
 # This function is called when the ADC says there's a value to read
+
+
 def queue_sample(channel):
     value = adc.get_last_result()
     if q.full():
@@ -67,6 +71,8 @@ def queue_sample(channel):
 # This function runs in a thread (or maybe a separate process)
 # It wakes up once per second, pulls a second's worth of values
 # from the queue, computes and stores an RMS value.
+
+
 def compute_rms():
 
     # Polynomial regression coefs to estimate amps
@@ -110,7 +116,7 @@ def compute_rms():
             rms = 0.00
         else:
             rms = math.sqrt(float(ssq)/n)
-            
+
         print('RMS: {0}'.format(rms))
 
         # Polynomial regression to estimate amps
@@ -121,13 +127,13 @@ def compute_rms():
             amps = 0.00
         print('Average Reading in Amps: {0}'.format(amps))
 
-
-        #Save to the database
+        # Save to the database
         try:
             c = conn.cursor()
             dt = datetime.datetime.now()
-            sql = "INSERT INTO currentreading VALUES ( '{0}', '{1}', 0, NULL )".format( dt.isoformat(), amps)
-            print( "Saving to database" )
+            sql = "INSERT INTO currentreading VALUES ( '{0}', '{1}', 0, NULL )".format(
+                dt.isoformat(), amps)
+            print("Saving to database")
             c.execute(sql)
             conn.commit()
         except sqlite3.Error as e:
@@ -136,21 +142,22 @@ def compute_rms():
     conn.close()
     print("Database closed")
 
+
 # ADS1115 RDY connected to GPIO 24 results in call to my_callback
 GPIO.setup(24, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 GPIO.add_event_detect(24, GPIO.RISING, callback=queue_sample)
 
 try:
     print "Starting sampling"
-    
+
     # To enable the RDY pin,
     # Set the MSB of the HI_Thresh register to 1
     # Set the MSB of the LO_Thresh register to 0
     adc.start_adc_comparator(0,  # Channel number
-        32768, 0,  # High threshold value, low threshold value
-        data_rate=860,
-        active_low=False, traditional=True, latching=False,
-        num_readings=1, gain=GAIN)
+                             32768, 0,  # High threshold value, low threshold value
+                             data_rate=860,
+                             active_low=False, traditional=True, latching=False,
+                             num_readings=1, gain=GAIN)
 
     # Start the RMS thread
     t = Thread(target=compute_rms)
@@ -159,7 +166,7 @@ try:
     # Put the main thread to sleep
     # TODO: Run until you stop collecting data.
     time.sleep(10)
-    
+
 except KeyboardInterrupt:
     keep_going = False
     adc.stop_adc()
@@ -171,4 +178,3 @@ time.sleep(2)
 
 dt = datetime.datetime.now()
 print("===== sampler.py exiting at ", dt.isoformat())
-

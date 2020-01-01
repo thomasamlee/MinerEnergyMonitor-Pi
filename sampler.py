@@ -1,29 +1,16 @@
-# -------------------------------------------------------------------------
-# Program: Reads current from ADS115 ADC and saves to database
-#
-# Copyright (C) 2018 Michael T. Nigbor
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License at https://www.gnu.org/licenses
-#    for more details.
-# -------------------------------------------------------------------------
 import time
 import math
-import Adafruit_ADS1x15
+# import Adafruit_ADS1x15
+import adafruit_ads1x15.ads1115 as ADS
 import sqlite3
 import datetime
 import array
 import json
 
 # Calculate RMS excluding noisey values more than 3x std dev
-def rootmeansquare( values, avg, stddev, bias):
+
+
+def rootmeansquare(values, avg, stddev, bias):
     ssq = 0.0
     sum = 0.0
     n = 0
@@ -46,22 +33,29 @@ def rootmeansquare( values, avg, stddev, bias):
     return rms
 
 # Calculate the average value
-def average( values ):
+
+
+def average(values):
     sum = 0
     for value in values:
         sum = sum + value
-    avg = sum/len(values)    
+    avg = sum/len(values)
     return avg
 
 # Calculate sum of squares
-def sumsquares( values ):
+
+
+def sumsquares(values):
     ssq = 0
     for value in values:
-        ssq = ssq + value*value
+        ssq = ssq + value * value
+
     return ssq
 
 # Read an ADC channel with the specified gain at max rate for 1 second
-def readChannel( adc, chan, g ):
+
+
+def readChannel(adc, chan, g):
     values = []
     adc.start_adc(chan, gain=g, data_rate=860)
     # Sample for one second
@@ -70,7 +64,7 @@ def readChannel( adc, chan, g ):
         # Read the last ADC conversion value and print it out.
         value = float(adc.get_last_result())
         values.append(value)
-        #print('Channel {0}: {1}'.format(chan,value))
+        # print('Channel {0}: {1}'.format(chan,value))
 
     # Stop continuous conversion.
     adc.stop_adc()
@@ -78,7 +72,9 @@ def readChannel( adc, chan, g ):
     return values
 
 # Read and compute the amperage on the specified channel
-def readAmps( adc, chan, config ):
+
+
+def readAmps(adc, chan, config):
 
     chanid = "A{}".format(chan)
     print("Sampling " + chanid)
@@ -102,7 +98,7 @@ def readAmps( adc, chan, config ):
     print("Sampling started.")
 
     try:
-        values = readChannel( adc, chan, GAIN)
+        values = readChannel(adc, chan, GAIN)
         n = len(values)
         print("Sampling stopped")
     except ValueError as e:
@@ -111,10 +107,10 @@ def readAmps( adc, chan, config ):
     except Exception as e:
         print("Unexpected ADC error: ", e)
         exit()
-        
+
     # Calculate basic stats on the raw data
     avg = average(values)
-    ssq = sumsquares( values )
+    ssq = sumsquares(values)
     bias = -avg
     print("ssq ", ssq)
     print("avg", avg)
@@ -126,7 +122,7 @@ def readAmps( adc, chan, config ):
     print("stddev", stddev)
 
     # Calculate the RMS
-    rms = rootmeansquare( values, avg, stddev, bias)
+    rms = rootmeansquare(values, avg, stddev, bias)
 
     # Polynomial regression to estimate amps
     # Based on experiments from 0 to 13 amps
@@ -136,32 +132,33 @@ def readAmps( adc, chan, config ):
     print("B", B)
     print("C", C)
 
-    #Round to 2 decimal places
+    # Round to 2 decimal places
     amps = round(temp, 2)
     if amps < 0:
         amps = 0.00
     print('Average Reading in Amps: {0}'.format(amps))
-    
+
     return amps
 
-#----
-# main routine here
-#----
 
+# ----
+# main routine here
+# ----
 dt = datetime.datetime.now()
 print("===== sampler.py starting at ", dt.isoformat())
 
-#Read configuration
+# Read configuration
 try:
     with open('/home/pi/homeenergy-pi/HomeEnergy.json') as json_data:
         config = json.load(json_data)
         print("Configuration read")
 except IOError as e:
-  print("Unable to open configuration file:", e)
-  exit()
-    
+    print("Unable to open configuration file:", e)
+    exit()
+
 # Create an ADS1115 ADC (16-bit) instance.
-adc = Adafruit_ADS1x15.ADS1115()
+ads = ADS()
+# adc = Adafruit_ADS1x15.ADS1115()
 
 try:
     conn = sqlite3.connect(config["Database"])
@@ -171,25 +168,24 @@ except Exception as e:
     exit()
 
 # Read channels 0 and 1
-amps0 = readAmps( adc, 0, config)
-amps1 = readAmps( adc, 1, config)
+amps0 = readAmps(adc, 0, config)
+amps1 = readAmps(adc, 1, config)
 
-#Save to the database
+# Save to the database
 try:
     c = conn.cursor()
     dt = datetime.datetime.now()
-    sql = "INSERT INTO currentreading VALUES ( '{0}', '{1}', '{2}', NULL )".format( dt.isoformat(), amps0, amps1)
-    print( "Saving to database" )
+    sql = "INSERT INTO currentreading VALUES ( '{0}', '{1}', '{2}', NULL )".format(
+        dt.isoformat(), amps0, amps1)
+    print("Saving to database")
     c.execute(sql)
     conn.commit()
 except sqlite3.Error as e:
     print("Error writing to database: ", e)
     exit()
-    
+
 conn.close()
 print("Database closed")
 
 dt = datetime.datetime.now()
 print("===== sampler.py exiting at ", dt.isoformat())
-
-
