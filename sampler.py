@@ -1,15 +1,69 @@
 import time
 import math
-# import Adafruit_ADS1x15
-import adafruit_ads1x15.ads1115 as ADS
+import Adafruit_ADS1x15
 import sqlite3
 import datetime
 import array
 import json
 
+
+# ----
+# main routine here
+# ----
+
+# timestamp for start
+dt = datetime.datetime.now()
+print("===== sampler.py starting at ", dt.isoformat())
+
+# Read configuration
+try:
+    with open('/home/pi/homeenergy-pi/HomeEnergy.json') as json_data:
+        config = json.load(json_data)
+        print("Configuration read")
+except IOError as e:
+    print("Unable to open configuration file:", e)
+    exit()
+
+# Create an ADS1115 ADC (16-bit) instance.
+ads = ADS()
+# adc = Adafruit_ADS1x15.ADS1115()
+
+# open database connection
+try:
+    conn = sqlite3.connect(config["Database"])
+    print('Connected to database.')
+except Exception as e:
+    print("Unable to open database: ", e)
+    exit()
+
+# Read channels 0 and 1 from ADC
+amps0 = readAmps(adc, 0, config)
+amps1 = readAmps(adc, 1, config)
+
+# Save to database
+try:
+    c = conn.cursor()
+    dt = datetime.datetime.now()
+    sql = "INSERT INTO currentreading VALUES ( '{0}', '{1}', '{2}', NULL )".format(
+        dt.isoformat(), amps0, amps1)
+    print("Saving to database")
+    c.execute(sql)
+    conn.commit()
+except sqlite3.Error as e:
+    print("Error writing to database: ", e)
+    exit()
+
+# close database connection
+conn.close()
+print("Database closed")
+
+# timestamp for done
+dt = datetime.datetime.now()
+print("===== sampler.py exiting at ", dt.isoformat())
+
+# Helper function below. Should become module or class
+
 # Calculate RMS excluding noisey values more than 3x std dev
-
-
 def rootmeansquare(values, avg, stddev, bias):
     ssq = 0.0
     sum = 0.0
@@ -139,53 +193,3 @@ def readAmps(adc, chan, config):
     print('Average Reading in Amps: {0}'.format(amps))
 
     return amps
-
-
-# ----
-# main routine here
-# ----
-dt = datetime.datetime.now()
-print("===== sampler.py starting at ", dt.isoformat())
-
-# Read configuration
-try:
-    with open('/home/pi/homeenergy-pi/HomeEnergy.json') as json_data:
-        config = json.load(json_data)
-        print("Configuration read")
-except IOError as e:
-    print("Unable to open configuration file:", e)
-    exit()
-
-# Create an ADS1115 ADC (16-bit) instance.
-ads = ADS()
-# adc = Adafruit_ADS1x15.ADS1115()
-
-try:
-    conn = sqlite3.connect(config["Database"])
-    print('Connected to database.')
-except Exception as e:
-    print("Unable to open database: ", e)
-    exit()
-
-# Read channels 0 and 1
-amps0 = readAmps(adc, 0, config)
-amps1 = readAmps(adc, 1, config)
-
-# Save to the database
-try:
-    c = conn.cursor()
-    dt = datetime.datetime.now()
-    sql = "INSERT INTO currentreading VALUES ( '{0}', '{1}', '{2}', NULL )".format(
-        dt.isoformat(), amps0, amps1)
-    print("Saving to database")
-    c.execute(sql)
-    conn.commit()
-except sqlite3.Error as e:
-    print("Error writing to database: ", e)
-    exit()
-
-conn.close()
-print("Database closed")
-
-dt = datetime.datetime.now()
-print("===== sampler.py exiting at ", dt.isoformat())
