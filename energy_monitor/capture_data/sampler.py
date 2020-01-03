@@ -1,10 +1,13 @@
 import time
 import math
-import Adafruit_ADS1x15
-import sqlite3
 import datetime
 import array
 import json
+import sqlite3
+import board
+import busio
+import adafruit_ads1x15.ads1015 as ADS
+from adafruit_ads1x15.analog_in import AnalogIn
 
 
 # ----
@@ -16,25 +19,27 @@ dt = datetime.datetime.now()
 print("===== sampler.py starting at ", dt.isoformat())
 
 # Read configuration
-try:
-    with open('/home/pi/homeenergy-pi/HomeEnergy.json') as json_data:
-        config = json.load(json_data)
-        print("Configuration read")
-except IOError as e:
-    print("Unable to open configuration file:", e)
-    exit()
+# try:
+#     with open('/home/pi/homeenergy-pi/HomeEnergy.json') as json_data:
+#         config = json.load(json_data)
+#         print("Configuration read")
+# except IOError as e:
+#     print("Unable to open configuration file:", e)
+#     exit()
 
-# Create an ADS1115 ADC (16-bit) instance.
-ads = ADS()
-# adc = Adafruit_ADS1x15.ADS1115()
+
+# Create the I2C bus, ADC object, & ADC channel 0
+i2c = busio.I2C(board.SCL, board.SDA)
+ads = ADS.ADS1015(i2c)
+channel = AnalogIn(ads, ADS.P0)
 
 # open database connection
-try:
-    conn = sqlite3.connect(config["Database"])
-    print('Connected to database.')
-except Exception as e:
-    print("Unable to open database: ", e)
-    exit()
+# try:
+#     conn = sqlite3.connect(config["Database"])
+#     print('Connected to database.')
+# except Exception as e:
+#     print("Unable to open database: ", e)
+#     exit()
 
 # Read channels 0 and 1 from ADC
 amps0 = readAmps(adc, 0, config)
@@ -63,73 +68,11 @@ print("===== sampler.py exiting at ", dt.isoformat())
 
 # Helper function below. Should become module or class
 
-# Calculate RMS excluding noisey values more than 3x std dev
-def rootmeansquare(values, avg, stddev, bias):
-    ssq = 0.0
-    sum = 0.0
-    n = 0
-
-    for value in values:
-        newValue = value + bias
-        # Skip values more that 3x stddev
-        if abs(value) < avg + 3*stddev:
-            ssq = ssq + newValue * newValue
-            sum = sum + newValue
-            n = n + 1
-
-    # Figure the RMS, which is the square root of the average of the
-    # sum of squares figured above
-    if n == 0:
-        rms = 0.00
-    else:
-        rms = math.sqrt(float(ssq)/n)
-    print('RMS: {0}'.format(rms))
-    return rms
-
-# Calculate the average value
-
-
-def average(values):
-    sum = 0
-    for value in values:
-        sum = sum + value
-    avg = sum/len(values)
-    return avg
-
-# Calculate sum of squares
-
-
-def sumsquares(values):
-    ssq = 0
-    for value in values:
-        ssq = ssq + value * value
-
-    return ssq
-
-# Read an ADC channel with the specified gain at max rate for 1 second
-
-
-def readChannel(adc, chan, g):
-    values = []
-    adc.start_adc(chan, gain=g, data_rate=860)
-    # Sample for one second
-    start = time.time()
-    while (time.time() - start) <= 1.0:
-        # Read the last ADC conversion value and print it out.
-        value = float(adc.get_last_result())
-        values.append(value)
-        # print('Channel {0}: {1}'.format(chan,value))
-
-    # Stop continuous conversion.
-    adc.stop_adc()
-
-    return values
 
 # Read and compute the amperage on the specified channel
-
-
 def readAmps(adc, chan, config):
 
+    # Channel A
     chanid = "A{}".format(chan)
     print("Sampling " + chanid)
     GAIN = config["Sampler"][chanid]["gain"]
@@ -149,6 +92,7 @@ def readAmps(adc, chan, config):
     # The inductive sensor returns an AC voltage. Sample at the
     # maximum rate for 1 second.  Then calculate the RMS of
     # the sampled readings
+    # what is the max rate?
     print("Sampling started.")
 
     try:
@@ -193,3 +137,66 @@ def readAmps(adc, chan, config):
     print('Average Reading in Amps: {0}'.format(amps))
 
     return amps
+
+
+# Calculate RMS excluding noisey values more than 3x std dev
+# def rootmeansquare(values, avg, stddev, bias):
+#     ssq = 0.0
+#     sum = 0.0
+#     n = 0
+
+#     for value in values:
+#         newValue = value + bias
+#         # Skip values more that 3x stddev
+#         if abs(value) < avg + 3*stddev:
+#             ssq = ssq + newValue * newValue
+#             sum = sum + newValue
+#             n = n + 1
+
+#     # Figure the RMS, which is the square root of the average of the
+#     # sum of squares figured above
+#     if n == 0:
+#         rms = 0.00
+#     else:
+#         rms = math.sqrt(float(ssq)/n)
+#     print('RMS: {0}'.format(rms))
+#     return rms
+
+
+# # Calculate the average value
+# def average(values):
+#     sum = 0
+#     for value in values:
+#         sum = sum + value
+#     avg = sum/len(values)
+#     return avg
+
+
+# # Calculate sum of squares
+# def sumsquares(values):
+#     ssq = 0
+#     for value in values:
+#         ssq = ssq + value * value
+
+#     return ssq
+
+
+# Read an ADC channel with the specified gain at max rate for 1 second
+def read_channel(adc, chan, g):
+    values = []
+    adc.start_adc(chan, gain=g, data_rate=860)
+
+    # Sample for one second
+
+    # does this need to be made?
+    start = time.time()
+    while (time.time() - start) <= 1.0:
+        # Read the last ADC conversion value and print it out.
+        value = float(adc.get_last_result())
+        values.append(value)
+        # print('Channel {0}: {1}'.format(chan,value))
+
+    # Stop continuous conversion.
+    adc.stop_adc()
+
+    return values
