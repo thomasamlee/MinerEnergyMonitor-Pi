@@ -6,7 +6,7 @@ import json
 import sqlite3
 import board
 import busio
-import adafruit_ads1x15.ads1015 as ADS
+import adafruit_ads1x15.ads1115 as ADS
 from adafruit_ads1x15.analog_in import AnalogIn
 
 
@@ -28,9 +28,14 @@ print("===== sampler.py starting at ", dt.isoformat())
 #     exit()
 
 
-# Create the I2C bus, ADC object, & ADC channel 0
+# Create the I2C bus
+
 i2c = busio.I2C(board.SCL, board.SDA)
-ads = ADS.ADS1015(i2c)
+
+# , ADC object, &
+ads = ADS.ADS1115(i2c)
+
+ADC channel 0
 channel = AnalogIn(ads, ADS.P0)
 
 # open database connection
@@ -140,45 +145,45 @@ def readAmps(adc, chan, config):
 
 
 # Calculate RMS excluding noisey values more than 3x std dev
-# def rootmeansquare(values, avg, stddev, bias):
-#     ssq = 0.0
-#     sum = 0.0
-#     n = 0
+def rootmeansquare(values, avg, stddev, bias):
+    ssq = 0.0
+    sum = 0.0
+    n = 0
 
-#     for value in values:
-#         newValue = value + bias
-#         # Skip values more that 3x stddev
-#         if abs(value) < avg + 3*stddev:
-#             ssq = ssq + newValue * newValue
-#             sum = sum + newValue
-#             n = n + 1
+    for value in values:
+        newValue = value + bias
+        # Skip values more that 3x stddev
+        if abs(value) < avg + 3*stddev:
+            ssq = ssq + newValue * newValue
+            sum = sum + newValue
+            n = n + 1
 
-#     # Figure the RMS, which is the square root of the average of the
-#     # sum of squares figured above
-#     if n == 0:
-#         rms = 0.00
-#     else:
-#         rms = math.sqrt(float(ssq)/n)
-#     print('RMS: {0}'.format(rms))
-#     return rms
+    # Figure the RMS, which is the square root of the average of the
+    # sum of squares figured above
+    if n == 0:
+        rms = 0.00
+    else:
+        rms = math.sqrt(float(ssq)/n)
+    print('RMS: {0}'.format(rms))
+    return rms
 
 
 # # Calculate the average value
-# def average(values):
-#     sum = 0
-#     for value in values:
-#         sum = sum + value
-#     avg = sum/len(values)
-#     return avg
+def average(values):
+    sum = 0
+    for value in values:
+        sum = sum + value
+    avg = sum/len(values)
+    return avg
 
 
 # # Calculate sum of squares
-# def sumsquares(values):
-#     ssq = 0
-#     for value in values:
-#         ssq = ssq + value * value
+def sumsquares(values):
+    ssq = 0
+    for value in values:
+        ssq = ssq + value * value
 
-#     return ssq
+    return ssq
 
 
 # Read an ADC channel with the specified gain at max rate for 1 second
