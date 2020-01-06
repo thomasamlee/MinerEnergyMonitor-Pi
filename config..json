@@ -1,12 +1,12 @@
 {
-	"Database": "./HomeEnergy.db",
-	"Sampler": {
+	"database": "./HomeEnergy.db",
+	"sampler": {
 		"A": 0.1051,
 		"B": 0.00324,
 		"C": 0.0000011614,
 		"gain": 1
 	},
-	"Transmitter": {
+	"transmitter": {
 		"loginURL": "DESTINATION URL HERE",
 		"currentURL": "DESTINATION URL HERE",
 		"userName": "USERNAME HERE",

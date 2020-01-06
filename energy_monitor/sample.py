@@ -32,10 +32,9 @@ print("===== sampler.py starting at ", dt.isoformat())
 
 i2c = busio.I2C(board.SCL, board.SDA)
 
-# , ADC object, &
+# , ADC object
 ads = ADS.ADS1115(i2c)
 
-ADC channel 0
 channel = AnalogIn(ads, ADS.P0)
 
 # open database connection

@@ -22,21 +22,3 @@ def rootmeansquare(values, avg, stddev, bias):
         rms = math.sqrt(float(ssq)/n)
     print('RMS: {0}'.format(rms))
     return rms
-
-
-# Calculate sum of squares
-def sumsquares(values):
-    ssq = 0
-    for value in values:
-        ssq = ssq + value * value
-
-    return ssq
-
-
-# Calculate the average value
-def average(values):
-    sum = 0
-    for value in values:
-        sum = sum + value
-    avg = sum/len(values)
-    return avg
