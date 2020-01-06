@@ -14,13 +14,10 @@ from statistics import mean, stdev, variance
 from calculate.rootmeansquare import rootmeansquare
 from calculate.calc_current import calc_current
 
-# put this stuff here
+
 print("===== sampler.py starting at ", datetime.now().isoformat())
-
 sample()
-
 print("===== sampler.py exiting at ", datetime.now().isoformat())
-
 
 
 # main routine
@@ -29,7 +26,7 @@ def sample():
     # get config values
     try:
         config = get_config('/home/pi/homeenergy-pi/HomeEnergy.json')
-    except OSError as e:
+    except IOError as e:
         print("Unable to open configuration file:", e)
         exit()
         
@@ -69,9 +66,6 @@ def sample():
 
     # Calculations
     current = calc_current(raw_values, config)
-
-
-
 
 
     # Save to database

@@ -22,21 +22,21 @@ import datetime
 import array
 import requests
 import json
+from datetime import datetime
+from config.get_config import get_config
 
-dt = datetime.datetime.now()
-print("===== transmitter.py starting at ", dt.isoformat())
+print("===== transmitter.py starting at ", datetime.now().isoformat())
 
 #Read configuration
 try:
-  with open('/home/pi/homeenergy-pi/HomeEnergy.json') as json_data:
-    config = json.load(json_data)
-    print("Configuration read")
+  config = get_config('/home/pi/homeenergy-pi/HomeEnergy.json')
 except IOError as e:
   print("Unable to open configuration file:", e)
   exit()
+
   
-url_login = config["Transmitter"]["loginURL"]
-url_reading = config["Transmitter"]["currentURL"]
+url_login = config["transmitter"]["loginURL"]
+url_reading = config["transmitter"]["currentURL"]
 
 # Open the database
 try:
@@ -45,12 +45,13 @@ except Exception as e:
   print("Unable to open database: ", e)
   exit()
         
-login_data = {
-  'username' : config["Transmitter"]["userName"],
-  'password' : config["Transmitter"]["password"]
-}
 
 # Get a session cookie from the server
+login_data = {
+  'username' : config["transmitter"]["userName"],
+  'password' : config["transmitter"]["password"]
+}
+
 try:
   print("Getting access token")
   response = requests.post(url_login, login_data)
@@ -60,7 +61,7 @@ try:
 except requests.exceptions.RequestException as e:  #
     print("Unable to get token: ", e)
     sys.exit()
-    
+
 json_data = json.loads(response.text)
 tok = json_data["token"]
 print( "Token Recieved" )
@@ -71,11 +72,9 @@ myCookieDict = {'token': tok}
 # Select readings that have not been transmitted yet
 try:
   c = conn.cursor()
-  dt = datetime.datetime.now()
-  sql = "SELECT rowid, * FROM currentreading LIMIT 20"
   rowIDs = []
 
-  c.execute(sql)
+  c.execute("SELECT rowid, * FROM currentreading LIMIT 20")
 
   # Loop over the readings, transmit then delete it from the database
   for row in c:
@@ -109,7 +108,6 @@ except Exception as e:
 finally:
   conn.close()
 
-dt = datetime.datetime.now()
-print('===== transmitter.py exiting at ', dt.isoformat())
+print('===== transmitter.py exiting at ', datetime.now().isoformat())
 
 
