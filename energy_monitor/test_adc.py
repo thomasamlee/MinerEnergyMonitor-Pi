@@ -8,7 +8,7 @@ from adafruit_ads1x15.analog_in import AnalogIn
 i2c = busio.I2C(board.SCL, board.SDA)
 
 # Create the ADC object using the I2C bus
-ads = ADS.ADS1015(i2c, gain=1, data_rate=920)
+ads = ADS.ADS1015(i2c, gain=1, data_rate=860)
 
 print(f"ads rates:{ads.rates}")
 print(f"ads rate_config:{ads.rate_config}")

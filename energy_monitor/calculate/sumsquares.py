@@ -5,3 +5,7 @@ def sumsquares(values):
         ssq = ssq + value * value
 
     return ssq
+
+
+def close():
+    print("close")

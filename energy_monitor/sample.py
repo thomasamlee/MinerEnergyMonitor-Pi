@@ -9,6 +9,10 @@ import busio
 import adafruit_ads1x15.ads1115 as ADS
 from adafruit_ads1x15.analog_in import AnalogIn
 
+from calculate.rootmeansquare import rootmeansquare
+from calculate.sumsquares import sumsquares
+from read.read_amps import read_amps
+
 
 # ----
 # main routine here
@@ -27,15 +31,13 @@ print("===== sampler.py starting at ", dt.isoformat())
 #     print("Unable to open configuration file:", e)
 #     exit()
 
+channels = []
 
 # Create the I2C bus
-
 i2c = busio.I2C(board.SCL, board.SDA)
-
-# , ADC object
 ads = ADS.ADS1115(i2c)
+channels[0] = AnalogIn(ads, ADS.P0)
 
-channel = AnalogIn(ads, ADS.P0)
 
 # open database connection
 # try:
@@ -46,8 +48,8 @@ channel = AnalogIn(ads, ADS.P0)
 #     exit()
 
 # Read channels 0 and 1 from ADC
-amps0 = readAmps(adc, 0, config)
-amps1 = readAmps(adc, 1, config)
+amps0 = read_amps(adc, 0, config)
+amps1 = read_amps(adc, 1, config)
 
 # Save to database
 try:
@@ -73,74 +75,6 @@ print("===== sampler.py exiting at ", dt.isoformat())
 # Helper function below. Should become module or class
 
 
-# Read and compute the amperage on the specified channel
-def readAmps(adc, chan, config):
-
-    # Channel A
-    chanid = "A{}".format(chan)
-    print("Sampling " + chanid)
-    GAIN = config["Sampler"][chanid]["gain"]
-    A = config["Sampler"][chanid]["A"]
-    B = config["Sampler"][chanid]["B"]
-    C = config["Sampler"][chanid]["C"]
-
-    n = 0
-    sum = 0.0
-    ssq = 0
-    rms = 0
-    max = 0
-    min = 0
-    amps = 0
-    values = []
-
-    # The inductive sensor returns an AC voltage. Sample at the
-    # maximum rate for 1 second.  Then calculate the RMS of
-    # the sampled readings
-    # what is the max rate?
-    print("Sampling started.")
-
-    try:
-        values = readChannel(adc, chan, GAIN)
-        n = len(values)
-        print("Sampling stopped")
-    except ValueError as e:
-        print("ADC configuration error: ", e)
-        exit()
-    except Exception as e:
-        print("Unexpected ADC error: ", e)
-        exit()
-
-    # Calculate basic stats on the raw data
-    avg = average(values)
-    ssq = sumsquares(values)
-    bias = -avg
-    print("ssq ", ssq)
-    print("avg", avg)
-    print("bias", bias)
-
-    variance = float(ssq)/n - avg*avg
-    print("variance", variance)
-    stddev = math.sqrt(variance)
-    print("stddev", stddev)
-
-    # Calculate the RMS
-    rms = rootmeansquare(values, avg, stddev, bias)
-
-    # Polynomial regression to estimate amps
-    # Based on experiments from 0 to 13 amps
-    # Constants stored in config file.
-    temp = A + B*rms + C*rms*rms
-    print("A", A)
-    print("B", B)
-    print("C", C)
-
-    # Round to 2 decimal places
-    amps = round(temp, 2)
-    if amps < 0:
-        amps = 0.00
-    print('Average Reading in Amps: {0}'.format(amps))
-
-    return amps
 
 
 # Calculate RMS excluding noisey values more than 3x std dev

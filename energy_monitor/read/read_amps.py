@@ -1,11 +1,13 @@
 # use absolute imports here
-from calc import average, rootmeansquare, sumsquares
-import read_channel
+from calculate.rootmeansquare import rootmeansquare
+from calculate.sumsquares import sumsquares
+from read.read_channel import read_channel
+from statistics import mean
 
 # Read and compute the amperage on the specified channel
 
 
-def readAmps(adc, chan, config):
+def read_amps(adc, chan, config):
 
     # Channel A
     chanid = "A{}".format(chan)
@@ -42,7 +44,7 @@ def readAmps(adc, chan, config):
         exit()
 
     # Calculate basic stats on the raw data
-    avg = average(values)
+    avg = mean(values)
     ssq = sumsquares(values)
     bias = -avg
     print("ssq ", ssq)
